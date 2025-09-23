@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from "react";
 
 const CognitiveNavigationDemo = () => {
   const [isIndexOpen, setIsIndexOpen] = useState(false);
@@ -6,31 +6,33 @@ const CognitiveNavigationDemo = () => {
   const [dragStart, setDragStart] = useState(null);
   const [indexPosition, setIndexPosition] = useState({ x: 0, y: 0 });
   const [selectedTopic, setSelectedTopic] = useState(null);
+  const [hoveredItem, setHoveredItem] = useState(null);
   const chatContainerRef = useRef(null);
 
-  // Симулированные данные чата
+  // Симулированные данные чата с ИИ
   const chatMessages = [
-    { id: 1, type: 'user', text: 'Расскажи про машинное обучение', section: 'intro' },
-    { id: 2, type: 'ai', text: 'Машинное обучение — это подраздел искусственного интеллекта, который фокусируется на создании алгоритмов...', section: 'intro' },
-    { id: 3, type: 'user', text: 'Какие есть типы ML?', section: 'types' },
-    { id: 4, type: 'ai', text: 'Существует три основных типа машинного обучения: обучение с учителем, без учителя и обучение с подкреплением...', section: 'types' },
-    { id: 5, type: 'user', text: 'Объясни нейронные сети', section: 'neural' },
-    { id: 6, type: 'ai', text: 'Нейронные сети — это вычислительные модели, вдохновленные биологическими нейронными сетями...', section: 'neural' },
-    { id: 7, type: 'user', text: 'Как применять в бизнесе?', section: 'business' },
-    { id: 8, type: 'ai', text: 'Машинное обучение революционизирует бизнес через автоматизацию процессов, анализ данных...', section: 'business' },
-    { id: 9, type: 'user', text: 'Покажи примеры кода', section: 'code' },
-    { id: 10, type: 'ai', text: 'Вот простой пример линейной регрессии на Python:\nimport numpy as np\nfrom sklearn.linear_model import LinearRegression...', section: 'code' }
+    { id: 1, type: "user", text: "Расскажи про машинное обучение", section: "intro" },
+    { id: 2, type: "ai", text: "Машинное обучение — это подраздел ИИ, который создаёт алгоритмы для автоматического обучения на данных...", section: "intro" },
+    { id: 3, type: "user", text: "Какие есть типы ML?", section: "types" },
+    { id: 4, type: "ai", text: "Существует три типа: с учителем, без учителя, с подкреплением. Каждый решает свои задачи...", section: "types" },
+    { id: 5, type: "user", text: "Объясни нейронные сети", section: "neural" },
+    { id: 6, type: "ai", text: "Нейронные сети — вычислительные модели, вдохновлённые биологией. Состоят из слоёв нейронов...", section: "neural" },
+    { id: 7, type: "user", text: "Как применять в бизнесе?", section: "business" },
+    { id: 8, type: "ai", text: "ML революционизирует бизнес через автоматизацию, предиктивную аналитику, персонализацию...", section: "business" },
+    { id: 9, type: "user", text: "Покажи примеры кода", section: "code" },
+    { id: 10, type: "ai", text: "Пример линейной регрессии на Python:\nimport numpy as np\nfrom sklearn.linear_model import LinearRegression\n\nmodel = LinearRegression().fit(X, y)", section: "code" },
   ];
 
+  // Автоматически сгенерированное ИИ "оглавление по смыслам"
   const mindIndex = [
-    { id: 'intro', title: '🎯 Основы ML', description: 'Введение в машинное обучение', messages: [1, 2] },
-    { id: 'types', title: '🔀 Типы обучения', description: 'Виды машинного обучения', messages: [3, 4] },
-    { id: 'neural', title: '🧠 Нейросети', description: 'Принципы работы нейронных сетей', messages: [5, 6] },
-    { id: 'business', title: '💼 Бизнес-применение', description: 'Практические кейсы', messages: [7, 8] },
-    { id: 'code', title: '⚡ Код и примеры', description: 'Техническая реализация', messages: [9, 10] }
+    { id: "intro", title: "🎯 Основы ML", description: "Введение в машинное обучение", messages: [1, 2], color: "#3b82f6" },
+    { id: "types", title: "🔀 Типы обучения", description: "Виды ML", messages: [3, 4], color: "#8b5cf6" },
+    { id: "neural", title: "🧠 Нейросети", description: "Принципы работы нейронных сетей", messages: [5, 6], color: "#06d6a0" },
+    { id: "business", title: "💼 Бизнес-применение", description: "Практические кейсы", messages: [7, 8], color: "#f59e0b" },
+    { id: "code", title: "⚡ Код и примеры", description: "Примеры реализации", messages: [9, 10], color: "#ef4444" },
   ];
 
-  // --- Жестовое управление (тачскрин) ---
+  // Жестовое управление - удержание и свайп
   const handleTouchStart = (e) => {
     const touch = e.touches[0];
     setDragStart({ x: touch.clientX, y: touch.clientY, time: Date.now() });
@@ -38,86 +40,114 @@ const CognitiveNavigationDemo = () => {
 
   const handleTouchMove = (e) => {
     if (!dragStart) return;
+
     const touch = e.touches[0];
     const deltaY = touch.clientY - dragStart.y;
     const timeDelta = Date.now() - dragStart.time;
 
-    if (timeDelta > 500 && Math.abs(deltaY) > 30) {
+    // Долгое нажатие + движение = вызов оглавления
+    if (timeDelta > 400 && Math.abs(deltaY) > 25) {
       setIsIndexOpen(true);
-      setIndexPosition({ x: touch.clientX - 150, y: touch.clientY - 100 });
+      setIndexPosition({
+        x: Math.min(Math.max(touch.clientX - 175, 20), window.innerWidth - 370),
+                       y: Math.min(Math.max(touch.clientY - 150, 50), window.innerHeight - 400)
+      });
     }
   };
 
-  const handleTouchEnd = () => {
-    setDragStart(null);
-  };
+  const handleTouchEnd = () => setDragStart(null);
 
-  // --- Управление мышью (средняя кнопка) ---
-  const handleMouseDown = (e) => {
-    if (e.button === 1) {
-      e.preventDefault();
-      setDragStart({ x: e.clientX, y: e.clientY, time: Date.now() });
-    }
-  };
-
-  const handleMouseMove = (e) => {
-    if (!dragStart) return;
-    const deltaY = e.clientY - dragStart.y;
-    const timeDelta = Date.now() - dragStart.time;
-
-    if (timeDelta > 500 && Math.abs(deltaY) > 30) {
-      setIsIndexOpen(true);
-      setIndexPosition({ x: e.clientX - 150, y: e.clientY - 100 });
-    }
-  };
-
-  const handleMouseUp = (e) => {
-    if (dragStart && e.button === 1) {
-      setDragStart(null);
-    }
-  };
-
+  // Прыжок к секции с анимацией
   const jumpToSection = (sectionId) => {
     setSelectedTopic(sectionId);
     setActiveSection(sectionId);
     setIsIndexOpen(false);
 
-    const element = document.getElementById(`section-${sectionId}`);
-    if (element) element.scrollIntoView({ behavior: 'smooth' });
+    // Плавный переход с задержкой для визуального эффекта
+    setTimeout(() => {
+      const element = document.getElementById(`section-${sectionId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 200);
+
+    // Сброс подсветки через 2 секунды
+    setTimeout(() => {
+      setActiveSection(null);
+      setSelectedTopic(null);
+    }, 3000);
   };
 
   return (
-    <div className="h-screen bg-gray-900 text-white overflow-hidden relative">
+    <div style={{
+      height: "100vh",
+      background: "linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)",
+          color: "white",
+          overflow: "hidden",
+          position: "relative",
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    }}>
     {/* Основной чат */}
     <div
     ref={chatContainerRef}
-    className="h-full overflow-y-auto px-4 py-6 pb-20"
+    style={{
+      height: "100%",
+      overflowY: "auto",
+      padding: "1.5rem",
+      paddingBottom: "5rem",
+      scrollBehavior: "smooth"
+    }}
     onTouchStart={handleTouchStart}
     onTouchMove={handleTouchMove}
     onTouchEnd={handleTouchEnd}
-    onMouseDown={handleMouseDown}
-    onMouseMove={handleMouseMove}
-    onMouseUp={handleMouseUp}
-    style={{ scrollBehavior: 'smooth' }}
     >
-    <div className="max-w-2xl mx-auto space-y-4">
-    <div className="text-center mb-8">
-    <h1 className="text-2xl font-bold mb-2">🧠 Cognitive Navigation Demo</h1>
-    <p className="text-gray-400 text-sm">Удерживай палец или среднюю кнопку мыши и проводи вверх/вниз для вызова Mind Index</p>
+    <div style={{ maxWidth: "700px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+    <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+    <h1 style={{
+      fontSize: "2rem",
+      fontWeight: "700",
+      background: "linear-gradient(90deg, #60a5fa, #a78bfa, #34d399)",
+          backgroundClip: "text",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          marginBottom: "0.5rem"
+    }}>
+    🧠 Cognitive Navigation
+    </h1>
+    <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.9rem" }}>
+    Удерживай и проводи пальцем для вызова Mind Index
+    </p>
     </div>
 
     {chatMessages.map((msg) => (
       <div
       key={msg.id}
       id={`section-${msg.section}`}
-      className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'} transition-all duration-300 ${
-        activeSection === msg.section ? 'ring-2 ring-blue-500 rounded-lg p-2' : ''
-      }`}
+      style={{
+        display: "flex",
+        justifyContent: msg.type === "user" ? "flex-end" : "flex-start",
+        transition: "all 0.3s ease"
+      }}
       >
-      <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-        msg.type === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-100'
-      } ${selectedTopic === msg.section ? 'animate-pulse' : ''}`}>
-      <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+      <div style={{
+        maxWidth: "75%",
+        padding: "0.8rem 1.2rem",
+        borderRadius: msg.type === "user" ? "20px 20px 5px 20px" : "20px 20px 20px 5px",
+        background: msg.type === "user"
+        ? "linear-gradient(135deg, #3b82f6, #1d4ed8)"
+        : "rgba(55, 65, 81, 0.8)",
+                                color: "white",
+                                backdropFilter: "blur(10px)",
+                                border: activeSection === msg.section ? "2px solid #60a5fa" : "1px solid rgba(255,255,255,0.1)",
+                                boxShadow: activeSection === msg.section
+                                ? "0 0 20px rgba(96, 165, 250, 0.5)"
+                                : "0 4px 15px rgba(0,0,0,0.2)",
+                                transform: selectedTopic === msg.section ? "scale(1.02)" : "scale(1)",
+                                whiteSpace: "pre-wrap",
+                                fontSize: "0.95rem",
+                                lineHeight: "1.5"
+      }}>
+      {msg.text}
       </div>
       </div>
     ))}
@@ -126,51 +156,192 @@ const CognitiveNavigationDemo = () => {
 
     {/* Mind Index Overlay */}
     {isIndexOpen && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setIsIndexOpen(false)}>
       <div
-      className="bg-gray-800 rounded-2xl p-6 max-w-sm mx-4 shadow-2xl border border-gray-600"
-      style={{ transform: `translate(${indexPosition.x}px, ${indexPosition.y}px)`, animation: 'fadeInScale 0.3s ease-out' }}
-      onClick={(e) => e.stopPropagation()}
+      onClick={() => setIsIndexOpen(false)}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0, 0, 0, 0.6)",
+                     backdropFilter: "blur(8px)",
+                     display: "flex",
+                     alignItems: "center",
+                     justifyContent: "center",
+                     zIndex: 50,
+                     animation: "fadeIn 0.2s ease-out"
+      }}
       >
-      <div className="flex items-center justify-between mb-4">
-      <h3 className="text-lg font-semibold">📚 Mind Index</h3>
-      <button onClick={() => setIsIndexOpen(false)} className="text-gray-400 hover:text-white transition-colors">✕</button>
+      <div
+      onClick={(e) => e.stopPropagation()}
+      style={{
+        position: "absolute",
+        left: `${indexPosition.x}px`,
+        top: `${indexPosition.y}px`,
+        background: "rgba(17, 24, 39, 0.95)",
+                     borderRadius: "20px",
+                     padding: "1.5rem",
+                     minWidth: "350px",
+                     maxWidth: "400px",
+                     border: "1px solid rgba(96, 165, 250, 0.3)",
+                     boxShadow: "0 25px 50px rgba(0, 0, 0, 0.5)",
+                     backdropFilter: "blur(20px)",
+                     animation: "slideUp 0.3s ease-out"
+      }}
+      >
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: "1.5rem",
+        borderBottom: "1px solid rgba(255,255,255,0.1)",
+                     paddingBottom: "0.8rem"
+      }}>
+      <h3 style={{
+        fontSize: "1.2rem",
+        fontWeight: "600",
+        background: "linear-gradient(90deg, #60a5fa, #a78bfa)",
+                     backgroundClip: "text",
+                     WebkitBackgroundClip: "text",
+                     WebkitTextFillColor: "transparent"
+      }}>
+      📚 Mind Index
+      </h3>
+      <button
+      onClick={() => setIsIndexOpen(false)}
+      style={{
+        background: "none",
+        border: "none",
+        color: "rgba(255,255,255,0.7)",
+                     fontSize: "1.2rem",
+                     cursor: "pointer",
+                     padding: "0.25rem",
+                     borderRadius: "50%",
+                     transition: "all 0.2s"
+      }}
+      onMouseEnter={(e) => e.target.style.background = "rgba(255,255,255,0.1)"}
+      onMouseLeave={(e) => e.target.style.background = "none"}
+      >
+      ✕
+      </button>
       </div>
 
-      <div className="space-y-3">
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
       {mindIndex.map((item) => (
-        <div key={item.id} className="p-3 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition-all duration-200 transform hover:scale-105" onClick={() => jumpToSection(item.id)}>
-        <div className="flex items-center justify-between">
+        <div
+        key={item.id}
+        onClick={() => jumpToSection(item.id)}
+        onMouseEnter={() => setHoveredItem(item.id)}
+        onMouseLeave={() => setHoveredItem(null)}
+        style={{
+          padding: "1rem",
+          background: hoveredItem === item.id
+          ? `linear-gradient(135deg, ${item.color}20, ${item.color}10)`
+          : "rgba(55, 65, 81, 0.6)",
+                                borderRadius: "12px",
+                                cursor: "pointer",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                border: `1px solid ${hoveredItem === item.id ? item.color : "rgba(255,255,255,0.1)"}`,
+                                transform: hoveredItem === item.id ? "translateY(-2px) scale(1.02)" : "translateY(0) scale(1)",
+                                transition: "all 0.2s ease",
+                                boxShadow: hoveredItem === item.id ? `0 8px 25px ${item.color}30` : "0 2px 10px rgba(0,0,0,0.1)"
+        }}
+        >
         <div>
-        <h4 className="font-medium text-sm">{item.title}</h4>
-        <p className="text-xs text-gray-400 mt-1">{item.description}</p>
+        <h4 style={{
+          fontWeight: "500",
+          fontSize: "0.95rem",
+          marginBottom: "0.3rem",
+          color: hoveredItem === item.id ? item.color : "white"
+        }}>
+        {item.title}
+        </h4>
+        <p style={{
+          fontSize: "0.8rem",
+          color: "rgba(255,255,255,0.6)",
+                                margin: 0
+        }}>
+        {item.description}
+        </p>
         </div>
-        <div className="text-xs text-blue-400">{item.messages.length} msg</div>
+        <div style={{
+          fontSize: "0.75rem",
+          color: item.color,
+          fontWeight: "500",
+          background: `${item.color}20`,
+          padding: "0.25rem 0.5rem",
+          borderRadius: "8px"
+        }}>
+        {item.messages.length} msg
         </div>
         </div>
       ))}
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-600">
-      <p className="text-xs text-gray-400 text-center">🎯 Тапни для прыжка • 🔄 Векторная навигация</p>
+      <div style={{
+        marginTop: "1.2rem",
+        paddingTop: "1rem",
+        borderTop: "1px solid rgba(255,255,255,0.1)",
+                     textAlign: "center"
+      }}>
+      <p style={{
+        fontSize: "0.75rem",
+        color: "rgba(255,255,255,0.5)",
+                     margin: 0
+      }}>
+      🎯 Тапни для прыжка • 🔄 Векторная навигация
+      </p>
       </div>
       </div>
       </div>
     )}
 
     {/* Инструкция */}
-    <div className="fixed bottom-4 left-4 right-4 z-10">
-    <div className="bg-gray-800 rounded-lg p-3 text-center shadow-lg">
-    <p className="text-xs text-gray-300">
-    💡 <strong>Попробуй жест или среднюю кнопку мыши:</strong> удерживай и проводи вверх/вниз
-    </p>
+    <div style={{
+      position: "fixed",
+      bottom: "1.5rem",
+      left: "1rem",
+      right: "1rem",
+      zIndex: 10,
+      display: "flex",
+      justifyContent: "center"
+    }}>
+    <div style={{
+      background: "rgba(17, 24, 39, 0.9)",
+          padding: "0.8rem 1.5rem",
+          borderRadius: "12px",
+          fontSize: "0.8rem",
+          color: "rgba(255,255,255,0.8)",
+          backdropFilter: "blur(10px)",
+          border: "1px solid rgba(255,255,255,0.1)",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+          textAlign: "center",
+          maxWidth: "400px"
+    }}>
+    💡 <strong style={{ color: "#60a5fa" }}>Попробуй жест:</strong> Удерживай палец и проведи вверх/вниз для вызова Mind Index
     </div>
     </div>
 
-    <style jsx>{`
-      @keyframes fadeInScale {
-        from { opacity: 0; transform: scale(0.8); }
-        to { opacity: 1; transform: scale(1); }
+    <style>{`
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px) scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
       }
       `}</style>
       </div>
